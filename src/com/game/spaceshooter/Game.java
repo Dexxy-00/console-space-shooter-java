@@ -1,16 +1,44 @@
 package com.game.spaceshooter;
+import org.fusesource.jansi.AnsiConsole;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.NonBlockingReader;
 
-import java.util.Scanner;
 
 public class Game {
     private Player player;
     private boolean run;
-    private Scanner in = new Scanner(System.in);
+    private static final int WIDTH = 60;
+    private static final int HEIGHT = 50;
+    private Terminal terminal;
+    private NonBlockingReader reader;
 
     public void start() {
-        run = true;
-        player = new Player(10, 5, 10f);
-        gameLoop();
+        try {
+            AnsiConsole.systemInstall();
+
+            System.out.print("\033[?25l"); // hide cursor
+
+            terminal = TerminalBuilder.builder()
+                    .system(true)
+                    .build();
+
+            terminal.enterRawMode();
+            reader = terminal.reader();
+
+            System.out.print("\033[2J");
+            System.out.print("\033[H");
+
+            run = true;
+            player = new Player(WIDTH / 2, HEIGHT - 2, WIDTH, HEIGHT);
+            gameLoop();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.out.print("\033[?25h"); // restore cursor
+            AnsiConsole.systemUninstall();
+        }
     }
 
     public void gameLoop() {
@@ -20,7 +48,16 @@ public class Game {
             float deltaTime = (currentTime - lastTime) / 1000000000f;
             lastTime = currentTime;
             updateScreen(deltaTime);
+
+            System.out.print("\033[H");
+
             renderScreen();
+
+            try {
+                Thread.sleep(16); // ~60 FPS
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -29,21 +66,46 @@ public class Game {
     }
 
     public void renderScreen() {
-        System.out.println("Player's X coords : " + player.getX());
+        int x = player.getX();
+        int y = player.getY();
+
+        System.out.print("\033[H");
+        for(int i = 0; i < HEIGHT; i++) {
+            for(int j = 0; j < WIDTH; j++) {
+                if(i == y && j == x) {
+                    System.out.print("< >");
+                } else {
+                    System.out.print("   ");
+                }
+            }
+            System.out.println();
+        }
+
+        System.out.flush();
     }
 
     public void handleInput(float deltaTime) {
-        if(in.hasNextLine()) {
-            String input = in.nextLine();
+        try {
+            int ch = reader.read(0); // non-blocking read
 
-            switch(input.toLowerCase()) {
-                case "a":
-                    player.moveLeft(deltaTime);
+            if (ch == -1) return; // no key pressed
+
+            switch (ch) {
+                case 'a':
+                    player.moveLeft();
                     break;
-                case "d":
-                    player.moveRight(deltaTime);
+
+                case 'd':
+                    player.moveRight();
+                    break;
+
+                case 'q':
+                    run = false;
                     break;
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
