@@ -42,12 +42,8 @@ public class Game {
     }
 
     public void gameLoop() {
-        long lastTime = System.nanoTime();
         while(run) {
-            long currentTime = System.nanoTime();
-            float deltaTime = (currentTime - lastTime) / 1000000000f;
-            lastTime = currentTime;
-            updateScreen(deltaTime);
+            updateScreen();
 
             System.out.print("\033[H");
 
@@ -61,8 +57,8 @@ public class Game {
         }
     }
 
-    public void updateScreen(float deltaTime) {
-        handleInput(deltaTime);
+    public void updateScreen() {
+        handleInput();
     }
 
     public void renderScreen() {
@@ -84,7 +80,7 @@ public class Game {
         System.out.flush();
     }
 
-    public void handleInput(float deltaTime) {
+    public void handleInput() {
         try {
             int ch = reader.read(0); // non-blocking read
 
