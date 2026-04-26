@@ -1,0 +1,1 @@
+WARNING : The run.bat batch file was configured according to my system, the screen rendering and other functions might not function properly inside some IDEs it is advised to use terminal or powershell or even Git Bash
