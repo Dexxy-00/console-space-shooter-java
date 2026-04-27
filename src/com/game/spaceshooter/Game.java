@@ -8,8 +8,8 @@ import org.jline.utils.NonBlockingReader;
 public class Game {
     private Player player;
     private boolean run;
-    private static final int WIDTH = 60;
-    private static final int HEIGHT = 50;
+    private static final int WIDTH = 69;
+    private static final int HEIGHT = 50; // Reduced height to fit inside standard terminals
     private Terminal terminal;
     private NonBlockingReader reader;
 
@@ -17,6 +17,7 @@ public class Game {
         try {
             AnsiConsole.systemInstall();
 
+            System.out.print("\033[?1049h"); // enter alternate screen buffer (prevents scrollback mess)
             System.out.print("\033[?25l"); // hide cursor
 
             terminal = TerminalBuilder.builder()
@@ -37,6 +38,7 @@ public class Game {
             e.printStackTrace();
         } finally {
             System.out.print("\033[?25h"); // restore cursor
+            System.out.print("\033[?1049l"); // exit alternate screen buffer
             AnsiConsole.systemUninstall();
         }
     }
@@ -44,8 +46,6 @@ public class Game {
     public void gameLoop() {
         while(run) {
             updateScreen();
-
-            System.out.print("\033[H");
 
             renderScreen();
 
@@ -65,42 +65,45 @@ public class Game {
         int x = player.getX();
         int y = player.getY();
 
-        System.out.print("\033[H");
+        StringBuilder sb = new StringBuilder();
+        sb.append("\033[H"); // Move cursor to top-left
+        
         for(int i = 0; i < HEIGHT; i++) {
-            for(int j = 0; j < WIDTH; j++) {
-                if(i == y && j == x) {
-                    System.out.print("< >");
+            for (int j = 0; j < WIDTH; j++) {
+                if (i == y && j == x) {
+                    sb.append("< >");
                 } else {
-                    System.out.print("   ");
+                    sb.append("   ");
                 }
             }
-            System.out.println();
+            // Avoid printing a newline on the very last line to prevent scrolling
+            if (i < HEIGHT - 1) {
+                sb.append("\n");
+            }
         }
-
+        System.out.print(sb.toString());
         System.out.flush();
     }
 
     public void handleInput() {
         try {
-            int ch = reader.read(0); // non-blocking read
+            int ch = reader.read(1);
 
-            if (ch == -1) return; // no key pressed
-
-            switch (ch) {
-                case 'a':
-                    player.moveLeft();
-                    break;
-
-                case 'd':
-                    player.moveRight();
-                    break;
-
-                case 'q':
-                    run = false;
-                    break;
+            if (ch != -1) {
+                switch (ch) {
+                    case 'a':
+                        player.moveLeft();
+                        break;
+                    case 'd':
+                        player.moveRight();
+                        break;
+                    case 'q':
+                        run = false;
+                        break;
+                }
             }
 
-        } catch (Exception e) {
+        } catch (java.io.IOException e) {
             e.printStackTrace();
         }
     }
