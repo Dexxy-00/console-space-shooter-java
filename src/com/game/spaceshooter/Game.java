@@ -4,14 +4,19 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.NonBlockingReader;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 
 public class Game {
     private Player player;
     private boolean run;
     private static final int WIDTH = 69;
-    private static final int HEIGHT = 50; // Reduced height to fit inside standard terminals
+    private static final int HEIGHT = 50;
     private Terminal terminal;
     private NonBlockingReader reader;
+    private List<Bullet> bullets = new ArrayList<>();
 
     public void start() {
         try {
@@ -59,6 +64,16 @@ public class Game {
 
     public void updateScreen() {
         handleInput();
+
+        Iterator<Bullet> iterator = bullets.iterator();
+        while (iterator.hasNext()) {
+            Bullet b = iterator.next();
+            b.moveUp();
+
+            if (b.getY() < 0) {
+                iterator.remove();
+            }
+        }
     }
 
     public void renderScreen() {
@@ -72,7 +87,11 @@ public class Game {
             for (int j = 0; j < WIDTH; j++) {
                 if (i == y && j == x) {
                     sb.append("< >");
-                } else {
+                }
+                else if(bulletExists(bullets, j, i)) {
+                    sb.append(" | ");
+                }
+                else {
                     sb.append("   ");
                 }
             }
@@ -83,6 +102,15 @@ public class Game {
         }
         System.out.print(sb.toString());
         System.out.flush();
+    }
+
+    private boolean bulletExists(List<Bullet> bullets, int x, int y) {
+        for (Bullet bullet : bullets) {
+            if (bullet.getX() == x && bullet.getY() == y) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void handleInput() {
@@ -99,6 +127,9 @@ public class Game {
                         break;
                     case 'q':
                         run = false;
+                        break;
+                    case ' ':
+                        bullets.add(new Bullet(player.getX(), player.getY() - 1));
                         break;
                 }
             }
