@@ -17,6 +17,7 @@ public class Game {
     private Terminal terminal;
     private NonBlockingReader reader;
     private List<Bullet> bullets = new ArrayList<>();
+    private List<Enemy> enemies = new ArrayList<>();
 
     public void start() {
         try {
@@ -49,8 +50,9 @@ public class Game {
     }
 
     public void gameLoop() {
+        int frameCount = 0;
         while(run) {
-            updateScreen();
+            updateScreen(frameCount);
 
             renderScreen();
 
@@ -59,19 +61,54 @@ public class Game {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            frameCount++;
         }
     }
 
-    public void updateScreen() {
+    public void updateScreen(int frameCount) {
         handleInput();
 
-        Iterator<Bullet> iterator = bullets.iterator();
-        while (iterator.hasNext()) {
-            Bullet b = iterator.next();
+        Iterator<Bullet> bulletIterator = bullets.iterator();
+        while (bulletIterator.hasNext()) {
+            Bullet b = bulletIterator.next();
             b.moveUp();
-
             if (b.getY() < 0) {
-                iterator.remove();
+                bulletIterator.remove();
+            }
+        }
+
+        double spawnRate = 0.02;
+        if (Math.random() < spawnRate) {
+            enemies.add(new Enemy((int)(Math.random() * WIDTH), 0));
+        }
+
+        Iterator<Enemy> enemyIterator = enemies.iterator();
+        while (enemyIterator.hasNext()) {
+            Enemy e = enemyIterator.next();
+            boolean removed = false;
+
+            Iterator<Bullet> collisionIterator = bullets.iterator();
+            while (collisionIterator.hasNext()) {
+                Bullet b = collisionIterator.next();
+
+                if (b.getX() == e.getX() && b.getY() <= e.getY() && (b.getY() + 1) >= e.getY()) {
+                    enemyIterator.remove();
+                    collisionIterator.remove();
+                    removed = true;
+                    break;
+                }
+            }
+
+            if (removed) {
+                continue;
+            }
+
+            if (frameCount % 5 == 0) {
+                e.moveDown();
+            }
+
+            if (e.getY() >= HEIGHT) {
+                enemyIterator.remove();
             }
         }
     }
@@ -86,7 +123,10 @@ public class Game {
         for(int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
                 if (i == y && j == x) {
-                    sb.append("< >");
+                    sb.append("[-]");
+                }
+                else if(enemyExists(enemies, j, i)) {
+                    sb.append("(-)");
                 }
                 else if(bulletExists(bullets, j, i)) {
                     sb.append(" | ");
@@ -107,6 +147,15 @@ public class Game {
     private boolean bulletExists(List<Bullet> bullets, int x, int y) {
         for (Bullet bullet : bullets) {
             if (bullet.getX() == x && bullet.getY() == y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean enemyExists(List<Enemy> enemies, int x, int y) {
+        for (Enemy enemy : enemies) {
+            if (enemy.getX() == x && enemy.getY() == y) {
                 return true;
             }
         }
