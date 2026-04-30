@@ -1,7 +1,5 @@
 package com.game.spaceshooter;
 
-import java.util.List;
-
 public class Bullet {
     private int x;
     private int y;

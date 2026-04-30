@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 public class Game {
     private Player player;
     private boolean run;
@@ -47,6 +46,14 @@ public class Game {
             System.out.print("\033[?1049l"); // exit alternate screen buffer
             AnsiConsole.systemUninstall();
         }
+        
+        System.out.println("\n");
+        System.out.println("  ____    _    __  __ _____    _____     _______ ____  ");
+        System.out.println(" / ___|  / \\  |  \\/  | ____|  / _ \\ \\   / / ____|  _ \\ ");
+        System.out.println("| |  _  / _ \\ | |\\/| |  _|   | | | \\ \\ / /|  _| | |_) |");
+        System.out.println("| |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
+        System.out.println(" \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
+        System.out.println("\n");
     }
 
     public void gameLoop() {
@@ -54,7 +61,9 @@ public class Game {
         while(run) {
             updateScreen(frameCount);
 
-            renderScreen();
+            if (run) { // Only render if the game hasn't just ended
+                renderScreen();
+            }
 
             try {
                 Thread.sleep(16); // ~60 FPS
@@ -86,6 +95,11 @@ public class Game {
         while (enemyIterator.hasNext()) {
             Enemy e = enemyIterator.next();
             boolean removed = false;
+
+            if (player.getX() == e.getX() && e.getY() >= player.getY() && e.getY() - 1 <= player.getY()) {
+                run = false; // Game over!
+                return;
+            }
 
             Iterator<Bullet> collisionIterator = bullets.iterator();
             while (collisionIterator.hasNext()) {
@@ -129,7 +143,7 @@ public class Game {
                     sb.append("(-)");
                 }
                 else if(bulletExists(bullets, j, i)) {
-                    sb.append(" | ");
+                    sb.append(" ^ ");
                 }
                 else {
                     sb.append("   ");
