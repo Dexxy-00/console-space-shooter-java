@@ -17,6 +17,8 @@ public class Game {
     private NonBlockingReader reader;
     private List<Bullet> bullets = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
+    private int score;
+    private double spawnRate;
 
     public void start() {
         try {
@@ -34,8 +36,10 @@ public class Game {
 
             System.out.print("\033[2J");
             System.out.print("\033[H");
-
+            
             run = true;
+            score = 0;
+            spawnRate = 0.02;
             player = new Player(WIDTH / 2, HEIGHT - 2, WIDTH, HEIGHT);
             gameLoop();
 
@@ -54,14 +58,17 @@ public class Game {
         System.out.println("| |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
         System.out.println(" \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
         System.out.println("\n");
+        System.out.println("Final Score : " + score);
+        System.out.println("\n");
     }
 
     public void gameLoop() {
         int frameCount = 0;
+
         while(run) {
             updateScreen(frameCount);
 
-            if (run) { // Only render if the game hasn't just ended
+            if (run) {
                 renderScreen();
             }
 
@@ -85,11 +92,13 @@ public class Game {
                 bulletIterator.remove();
             }
         }
-
-        double spawnRate = 0.02;
-        if (Math.random() < spawnRate) {
+        double currentSpawnRate = Math.min(0.10, spawnRate + ((score / 10.0) * 0.002));
+        
+        if (Math.random() < currentSpawnRate) {
             enemies.add(new Enemy((int)(Math.random() * WIDTH), 0));
         }
+
+        int moveSpeed = Math.max(2, 5 - (score / 20));
 
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
@@ -114,10 +123,11 @@ public class Game {
             }
 
             if (removed) {
+                score++;
                 continue;
             }
 
-            if (frameCount % 5 == 0) {
+            if (frameCount % moveSpeed == 0) {
                 e.moveDown();
             }
 
@@ -133,6 +143,8 @@ public class Game {
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H"); // Move cursor to top-left
+        
+        sb.append("Score: ").append(score).append("\n");
         
         for(int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
