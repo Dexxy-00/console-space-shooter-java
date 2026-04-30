@@ -52,13 +52,13 @@ public class Game {
         }
         
         System.out.println("\n");
-        System.out.println("  ____    _    __  __ _____    _____     _______ ____  ");
-        System.out.println(" / ___|  / \\  |  \\/  | ____|  / _ \\ \\   / / ____|  _ \\ ");
-        System.out.println("| |  _  / _ \\ | |\\/| |  _|   | | | \\ \\ / /|  _| | |_) |");
-        System.out.println("| |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
-        System.out.println(" \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
+        System.out.println("                 ____    _    __  __ _____    _____     _______ ____  ");
+        System.out.println("                / ___|  / \\  |  \\/  | ____|  / _ \\ \\   / / ____|  _ \\ ");
+        System.out.println("               | |  _  / _ \\ | |\\/| |  _|   | | | \\ \\ / /|  _| | |_) |");
+        System.out.println("               | |_| |/ ___ \\| |  | | |___  | |_| |\\ V / | |___|  _ < ");
+        System.out.println("                \\____/_/   \\_\\_|  |_|_____|  \\___/  \\_/  |_____|_| \\_\\");
         System.out.println("\n");
-        System.out.println("Final Score : " + score);
+        System.out.println("                                Final Score : " + score);
         System.out.println("\n");
     }
 
@@ -143,8 +143,15 @@ public class Game {
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H"); // Move cursor to top-left
-        
-        sb.append("Score: ").append(score).append("\n");
+
+        String scoreText = "Score: " + score;
+        int totalWidth = WIDTH * 3; 
+        int padding = (totalWidth - scoreText.length()) / 2;
+
+        for (int i = 0; i < padding; i++) {
+            sb.append(" ");
+        }
+        sb.append(scoreText).append("\n");
         
         for(int i = 0; i < HEIGHT; i++) {
             for (int j = 0; j < WIDTH; j++) {
